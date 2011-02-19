@@ -103,5 +103,4 @@ class StaticDirectoryGrokker(martian.GlobalGrokker):
             discriminator = ('adapter', adapts, provides, library.name),
             callable = component.provideAdapter,
             args = (factory, adapts, provides, library.name))
-        print library.name
         return True
