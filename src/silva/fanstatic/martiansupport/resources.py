@@ -19,6 +19,11 @@ from silva.fanstatic.resources import ZopeFanstaticResource
 _marker = object()
 
 
+def is_fanstatic_resource(resource):
+    return (isinstance(resource, Resource) or
+            isinstance(resource, GroupResource))
+
+
 def create_resource_subscriber(resources, order):
 
     class ResourceSubscriber(object):
@@ -36,6 +41,15 @@ def create_resource_subscriber(resources, order):
 
 class ResourceIncludeGrokker(martian.InstanceGrokker):
     martian.component(InterfaceClass)
+
+    def get_fanstatic_resource(self, library, resources):
+        dependencies = []
+        for resource in resources:
+            if is_fanstatic_resource(resource):
+                dependencies.append(resource)
+            else:
+                dependencies.append(Resource(library, resource))
+        return GroupResource(dependencies)
 
     def grok(self, name, interface, module_info, config, **kw):
         resources = silvaconf.resource.bind(default=_marker).get(interface)
@@ -56,7 +70,7 @@ class ResourceIncludeGrokker(martian.InstanceGrokker):
             registry.add(library)
 
         # Create a group with all the resources
-        resources = GroupResource([Resource(library, r) for r in resources])
+        resources = self.get_fanstatic_resource(library,  resources)
 
         context = silvaconf.only_for.bind().get(interface)
         factory = create_resource_subscriber(
