@@ -5,6 +5,7 @@
 from five import grok
 from martian.error import GrokError
 from zope import component
+from zope.component.interface import provideInterface
 from zope.interface import Interface
 from zope.interface.interface import InterfaceClass
 from zope.publisher.interfaces.browser import IBrowserRequest
@@ -103,6 +104,10 @@ class ResourceIncludeGrokker(martian.InstanceGrokker):
             discriminator = None,
             callable = component.provideSubscriptionAdapter,
             args = (factory, (interface, context), ISubscribedResource))
+        config.action(
+            discriminator = None,
+            callable = provideInterface,
+            args = ('', interface))
 
         return True
 
