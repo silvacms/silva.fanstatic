@@ -2,7 +2,6 @@
 # See also LICENSE.txt
 # $Id$
 
-from five import grok
 from martian.error import GrokError
 from zope import component
 from zope.component.interface import provideInterface
@@ -79,8 +78,8 @@ def list_base_layers(layer):
                 continue
             need_parent = yield base
             if need_parent:
-                base_parents = list_base_layers(base)
                 need_base_parents = None
+                base_parents = list_base_layers(base)
                 while True:
                     try:
                         need_base_parents = yield base_parents.send(need_base_parents)
@@ -104,6 +103,7 @@ class ResourceIncludeGrokker(martian.InstanceGrokker):
 
         # Create a group with all the resources
         resource = get_fanstatic_resource(library,  resources)
+        INTERFACES_RESOURCES[interface.__identifier__] = resource
 
         context = silvaconf.only_for.bind().get(interface)
         factory = create_resource_subscriber(resource)
@@ -117,19 +117,10 @@ class ResourceIncludeGrokker(martian.InstanceGrokker):
             callable = provideInterface,
             args = ('', interface))
         config.action(
-            discriminator = ('fanstatic_register_resource', interface),
-            callable = self.register_resource,
-            args = (interface, resource),
-            order = 10)
-        config.action(
-            discriminator = ('fanstatic_solve_dependencies', interface),
+            discriminator = ('solve_dependencies', interface),
             callable = self.solve_dependencies,
-            args = (interface, resource),
-            order = 20)
+            args = (interface, resource))
         return True
-
-    def register_resource(self, interface, resource):
-        INTERFACES_RESOURCES[interface.__identifier__] = resource
 
     def solve_dependencies(self, interface, resource):
         try:
