@@ -61,9 +61,8 @@ class Resources(grok.ViewletManager):
         pass
 
     def render(self):
-        for resource in grok.queryOrderedMultiSubscriptions(
-            (self.request, self.context), ISubscribedResource):
-            resource()
+        grok.queryMultiSubscriptions(
+            (self.request, self.context), ISubscribedResource)
         return u''
 
 

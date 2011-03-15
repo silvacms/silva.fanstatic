@@ -7,9 +7,11 @@ from martian.error import GrokError
 from zope import component
 from zope.component.interface import provideInterface
 from zope.interface import Interface
-from zope.interface.interface import InterfaceClass
+from zope.interface.interfaces import IInterface
 from zope.publisher.interfaces.browser import IBrowserRequest
+from zope.publisher.interfaces.browser import IBrowserSkinType
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
+from zope.interface.interface import InterfaceClass
 import martian
 import fanstatic
 
@@ -57,21 +59,33 @@ def get_fanstatic_library(module_info):
     return library
 
 
-def create_resource_subscriber(resources, order):
+def create_resource_subscriber(resource):
     """Return a subscription that require the resource content.
     """
 
-    class ResourceSubscriber(object):
-        grok.order(order)
-        grok.implements(ISubscribedResource)
+    def subscriber(*args):
+        resource.need()
 
-        def __init__(self, *args):
-            pass
+    return subscriber
 
-        def __call__(self):
-            resources.need()
 
-    return ResourceSubscriber
+def list_base_layers(layer):
+    """List all layers used by the given layer.
+    """
+    if IInterface.providedBy(layer) and layer.extends(IBrowserRequest):
+        for base in layer.__bases__:
+            if base in (
+                IDefaultBrowserLayer, IBrowserSkinType, IBrowserRequest, Interface):
+                continue
+            need_parent = yield base
+            if need_parent:
+                base_parents = list_base_layers(base)
+                need_base_parents = None
+                while True:
+                    try:
+                        need_base_parents = yield base_parents.send(need_base_parents)
+                    except StopIteration:
+                        break
 
 
 class ResourceIncludeGrokker(martian.InstanceGrokker):
@@ -91,14 +105,8 @@ class ResourceIncludeGrokker(martian.InstanceGrokker):
         # Create a group with all the resources
         resource = get_fanstatic_resource(library,  resources)
 
-        # Save the created source for reuse.
-        # XXX Should be called by config.action at the same time
-        # registering the adapter.
-        INTERFACES_RESOURCES[interface.__identifier__] = resource
-
         context = silvaconf.only_for.bind().get(interface)
-        factory = create_resource_subscriber(
-            resource, len(interface.__iro__))
+        factory = create_resource_subscriber(resource)
 
         config.action(
             discriminator = None,
@@ -108,8 +116,35 @@ class ResourceIncludeGrokker(martian.InstanceGrokker):
             discriminator = None,
             callable = provideInterface,
             args = ('', interface))
-
+        config.action(
+            discriminator = ('fanstatic_register_resource', interface),
+            callable = self.register_resource,
+            args = (interface, resource),
+            order = 10)
+        config.action(
+            discriminator = ('fanstatic_solve_dependencies', interface),
+            callable = self.solve_dependencies,
+            args = (interface, resource),
+            order = 20)
         return True
+
+    def register_resource(self, interface, resource):
+        INTERFACES_RESOURCES[interface.__identifier__] = resource
+
+    def solve_dependencies(self, interface, resource):
+        try:
+            need_parent = None
+            parents = list_base_layers(interface)
+            while True:
+                dependency = parents.send(need_parent)
+                identifier = dependency.__identifier__
+                if identifier in INTERFACES_RESOURCES:
+                    resource.depends.insert(0, INTERFACES_RESOURCES[identifier])
+                    need_parent = False
+                else:
+                    need_parent = True
+        except StopIteration:
+            pass
 
 
 def create_factory(library):
