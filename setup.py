@@ -37,7 +37,7 @@ setup(name='silva.fanstatic',
       zip_safe=False,
       install_requires=[
           'five.grok',
-          'fanstatic',
+          'fanstatic > 0.11',
           'martian',
           ],
       tests_require = tests_require,

@@ -4,6 +4,7 @@
 
 from martian.error import GrokError
 from zope import component
+from zope.component import provideSubscriptionAdapter
 from zope.component.interface import provideInterface
 from zope.interface import Interface
 from zope.interface.interfaces import IInterface
@@ -29,17 +30,20 @@ def is_fanstatic_resource(resource):
             isinstance(resource, fanstatic.GroupResource))
 
 
-def get_fanstatic_resource(library, resources):
+def get_fanstatic_resource(library, resources, dependencies=[]):
     """Return a fanstatic resource from library out of the resources
     list.
     """
-    dependencies = []
+    dependencies = list(dependencies)
     for resource in resources:
         if is_fanstatic_resource(resource):
             dependencies.append(resource)
+        elif resource in library.known_resources:
+            dependencies.append(library.known_resources[resource])
         else:
-            dependencies.append(fanstatic.Resource(library, resource))
-    return fanstatic.GroupResource(dependencies)
+            dependencies.append(fanstatic.Resource(
+                    library, resource, depends=dependencies))
+    return dependencies and dependencies[-1] or None
 
 
 def get_fanstatic_library(module_info):
@@ -90,6 +94,9 @@ def list_base_layers(layer):
 class ResourceIncludeGrokker(martian.InstanceGrokker):
     martian.component(InterfaceClass)
 
+    # Class dict
+    resources = {}
+
     def grok(self, name, interface, module_info, config, **kw):
         resources = silvaconf.resource.bind(default=_marker).get(interface)
         if resources is _marker:
@@ -102,40 +109,47 @@ class ResourceIncludeGrokker(martian.InstanceGrokker):
         library = get_fanstatic_library(module_info)
 
         # Create a group with all the resources
-        resource = get_fanstatic_resource(library,  resources)
-        INTERFACES_RESOURCES[interface.__identifier__] = resource
+        self.resources[interface.__identifier__] = (interface, library, resources)
 
-        context = silvaconf.only_for.bind().get(interface)
-        factory = create_resource_subscriber(resource)
-
-        config.action(
-            discriminator = None,
-            callable = component.provideSubscriptionAdapter,
-            args = (factory, (interface, context), ISubscribedResource))
-        config.action(
-            discriminator = None,
-            callable = provideInterface,
-            args = ('', interface))
         config.action(
             discriminator = ('solve_dependencies', interface),
             callable = self.solve_dependencies,
-            args = (interface, resource))
+            args = (interface, library, resources))
         return True
 
-    def solve_dependencies(self, interface, resource):
+    def solve_dependencies(self, interface, library, resources):
+        """This solve dependencies for resources mapped to an
+        interface in the given library. When solved, a fanstatic
+        resource is created and registered.
+        """
+        dependencies = []
         try:
             need_parent = None
             parents = list_base_layers(interface)
             while True:
                 dependency = parents.send(need_parent)
                 identifier = dependency.__identifier__
-                if identifier in INTERFACES_RESOURCES:
-                    resource.depends.insert(0, INTERFACES_RESOURCES[identifier])
+                if identifier in self.resources:
+                    if identifier in INTERFACES_RESOURCES:
+                        fanstatic_dependency = INTERFACES_RESOURCES[identifier]
+                    else:
+                        fanstatic_dependency = self.solve_dependencies(*self.resources[identifier])
+                    if fanstatic_dependency is not None:
+                        dependencies.insert(0, fanstatic_dependency)
                     need_parent = False
                 else:
                     need_parent = True
         except StopIteration:
-            pass
+            fanstatic_resource = get_fanstatic_resource(library, resources, dependencies)
+            context = silvaconf.only_for.bind().get(interface)
+            factory = create_resource_subscriber(fanstatic_resource)
+
+            provideSubscriptionAdapter(factory, (interface, context), ISubscribedResource)
+            provideInterface('', interface)
+            INTERFACES_RESOURCES[interface.__identifier__] = fanstatic_resource
+            return fanstatic_resource
+        return None
+
 
 
 def create_factory(library):

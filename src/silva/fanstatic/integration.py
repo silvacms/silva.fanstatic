@@ -49,8 +49,8 @@ class ZopeFanstaticResource(object):
 
     def __str__(self):
         needed = fanstatic.get_needed()
-        if needed.base_url is None:
-            needed.base_url = IVirtualSite(self.request).get_root_url()
+        if not needed.has_base_url():
+            needed.set_base_url(IVirtualSite(self.request).get_root_url())
         return needed.library_url(self.library) + self.name
 
     __call__ = __str__
@@ -75,5 +75,5 @@ def set_base_url(event):
     needed = fanstatic.get_needed()
     if not needed.has_resources():
         return
-    if needed.base_url is None:
-        needed.base_url = IVirtualSite(event.request).get_root_url()
+    if not needed.has_base_url():
+        needed.set_base_url(IVirtualSite(event.request).get_root_url())
