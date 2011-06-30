@@ -43,7 +43,9 @@ def get_fanstatic_resource(library, resources, dependencies=[]):
         else:
             dependencies.append(fanstatic.Resource(
                     library, resource, depends=dependencies))
-    return dependencies and dependencies[-1] or None
+    if dependencies:
+        return fanstatic.Group(dependencies)
+    return None
 
 
 def get_fanstatic_library(module_info):
