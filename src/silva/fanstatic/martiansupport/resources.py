@@ -3,6 +3,7 @@
 # $Id$
 
 from martian.error import GrokError
+from five import grok
 from zope import component
 from zope.component import provideSubscriptionAdapter
 from zope.component.interface import provideInterface
@@ -14,6 +15,7 @@ from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from zope.interface.interface import InterfaceClass
 import martian
 import fanstatic
+import grokcore.view
 
 from silva.core.conf.martiansupport import directives as silvaconf
 from silva.fanstatic.interfaces import ISubscribedResource
@@ -48,17 +50,20 @@ def get_fanstatic_resource(library, resources, dependencies=[]):
     return None
 
 
-def get_fanstatic_library(module_info):
+def get_fanstatic_library(module_info, name=None, path=None):
     """Return the fanstatic library associated to the given module.
     """
+    if name is None:
+        name = module_info.package_dotted_name
+    if path is None:
+        path = 'static'
     registry = fanstatic.get_library_registry()
-    if module_info.package_dotted_name in registry:
-        library = registry[module_info.package_dotted_name]
+    if name in registry:
+        library = registry[name]
     else:
-        library = fanstatic.Library(
-            module_info.package_dotted_name, 'static')
+        library = fanstatic.Library(name, 'static')
         # Fix the correct path
-        library.path = module_info.getResourcePath('static')
+        library.path = module_info.getResourcePath(path)
         # Register the new library to fanstatic
         registry.add(library)
     return library
@@ -165,6 +170,8 @@ def create_factory(library):
 
 
 class StaticDirectoryGrokker(martian.GlobalGrokker):
+    """Support for default resource static directory into a package.
+    """
 
     def grok(self, name, module, module_info, config, **kw):
         # we're only interested in static resources if this module
@@ -183,3 +190,32 @@ class StaticDirectoryGrokker(martian.GlobalGrokker):
             callable = component.provideAdapter,
             args = (factory, adapts, provides, library.name))
         return True
+
+
+class DirectoryResourceGrokker(martian.ClassGrokker):
+    """Support for user-hand defined resource directory.
+    """
+    martian.component(grok.DirectoryResource)
+    martian.directive(grokcore.view.name, default=None)
+    martian.directive(grokcore.view.path)
+
+    def grok(self, name, factory, module_info, **kw):
+        # Need to store the module info object on the directory resource
+        # class so that it can look up the actual directory.
+        factory.module_info = module_info
+        return super(DirectoryResourceGrokker, self).grok(
+            name, factory, module_info, **kw)
+
+    def execute(self, factory, config, name, path, **kw):
+        # Get the fanstatic library
+        library = get_fanstatic_library(factory.module_info, name, path)
+
+        factory = create_factory(library)
+        adapts = (IBrowserRequest,)
+        provides = Interface
+        config.action(
+            discriminator = ('adapter', adapts, provides, library.name),
+            callable = component.provideAdapter,
+            args = (factory, adapts, provides, library.name))
+        return True
+
