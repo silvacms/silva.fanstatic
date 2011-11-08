@@ -5,7 +5,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.0dev'
+version = '1.0'
 
 tests_require = [
     'infrae.wsgi [test]',
@@ -28,17 +28,24 @@ setup(name='silva.fanstatic',
       keywords='zope2 fanstatic silva',
       author='Sylvain Viollon',
       author_email='info@infrae.com',
-      url='http://svn.infrae.com/silva.fanstatic/trunk',
-      license='ZPL',
+      url='http://hg.infrae.com/silva.fanstatic',
+      license='BSD',
       package_dir={'': 'src'},
       packages=find_packages('src'),
       namespace_packages=['silva'],
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'five.grok',
           'fanstatic > 0.11',
+          'five.grok',
           'martian',
+          'silva.core.conf',
+          'silva.core.views',
+          'zope.component',
+          'zope.interface',
+          'zope.publisher',
+          'zope.traversing',
+          'zope.testing',
           ],
       tests_require = tests_require,
       extras_require = {'test': tests_require},
