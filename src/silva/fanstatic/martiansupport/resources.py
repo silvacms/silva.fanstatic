@@ -2,6 +2,8 @@
 # See also LICENSE.txt
 # $Id$
 
+import os
+
 from martian.error import GrokError
 from five import grok
 from zope import component
@@ -43,8 +45,12 @@ def get_fanstatic_resource(library, resources, dependencies=[]):
         elif resource in library.known_resources:
             dependencies.append(library.known_resources[resource])
         else:
+            filename, extension = os.path.splitext(resource)
+            minified = '.min'.join((filename, extension),)
+            if not os.path.isfile(os.path.join(library.path, minified)):
+                minified = None
             dependencies.append(fanstatic.Resource(
-                    library, resource, depends=dependencies))
+                    library, resource, minified=minified, depends=dependencies))
     if dependencies:
         return fanstatic.Group(dependencies)
     return None

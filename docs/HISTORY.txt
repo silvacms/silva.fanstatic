@@ -4,7 +4,8 @@ Changes
 1.1 (unreleased)
 ----------------
 
-* ...
+* Automatically use ``*.min.ext`` file as a minified version for a
+  given ``*.ext`` file if it is present.
 
 1.0 (2011/11/08)
 ----------------
