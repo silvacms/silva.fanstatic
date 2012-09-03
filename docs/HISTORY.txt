@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.1 (unreleased)
+1.1 (2012/09/03)
 ----------------
 
 * Automatically use ``*.min.ext`` file as a minified version for a
