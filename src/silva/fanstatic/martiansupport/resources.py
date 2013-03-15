@@ -18,6 +18,7 @@ from zope.interface.interface import InterfaceClass
 import martian
 import fanstatic
 import grokcore.view
+import pkg_resources
 
 from silva.core.conf.martiansupport import directives as silvaconf
 from silva.fanstatic.interfaces import ISubscribedResource
@@ -56,6 +57,19 @@ def get_fanstatic_resource(library, resources, dependencies=[]):
     return None
 
 
+def get_package_version(module_info):
+    """Return the package version by looking for an egg in
+    pkg_resources where the code is, returning the version of the egg.
+    """
+    path = module_info.path
+    for egg in pkg_resources.working_set:
+        if (path.startswith(egg.location) and
+            path[len(egg.location)] == os.path.sep):
+            if 'dev' not in egg.version:
+                # We ignore this for development eggs.
+                return egg.version
+    return None
+
 def get_fanstatic_library(module_info, name=None, path=None):
     """Return the fanstatic library associated to the given module.
     """
@@ -67,7 +81,9 @@ def get_fanstatic_library(module_info, name=None, path=None):
     if name in registry:
         library = registry[name]
     else:
-        library = fanstatic.Library(name, 'static')
+        library = fanstatic.Library(
+            name, 'static',
+            version=get_package_version(module_info))
         # Fix the correct path
         library.path = module_info.getResourcePath(path)
         # Register the new library to fanstatic
