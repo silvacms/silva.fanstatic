@@ -1,0 +1,18 @@
+
+First Grok the interface to register them:
+
+  >>> grok('silva.fanstatic.tests.dependencies.inheritance_fixture')
+
+Open the page to verify the rendering:
+
+  >>> browser = get_browser()
+  >>> browser.open('/root/full.html')
+  200
+
+And check the rendering link the CSS files:
+
+  >>> print browser.html.xpath('//link/@href')
+  ['http://localhost/root/++static++/silva.fanstatic.tests.dependencies/base.css',
+   'http://localhost/root/++static++/silva.fanstatic.tests.dependencies/featurea.css',
+   'http://localhost/root/++static++/silva.fanstatic.tests.dependencies/featureb.css',
+   'http://localhost/root/++static++/silva.fanstatic.tests.dependencies/full.css']

@@ -21,6 +21,6 @@ def need(resource):
         identifier = resource.__identifier__
         resource = INTERFACES_RESOURCES.get(identifier)
         if resource is None:
-            logger.warning("Not including non-grokked resource set %s" % identifier)
+            logger.warning("Not including non-grokked resource %s" % identifier)
             return
-    resource.need()
+        resource.need()
