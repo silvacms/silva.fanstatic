@@ -23,4 +23,7 @@ def need(resource):
         if resource is None:
             logger.warning("Not including non-grokked resource %s" % identifier)
             return
+        return resource.need()
+    if hasattr(resource, 'need'):
+        # There are no check possible ...
         resource.need()

@@ -1,0 +1,19 @@
+
+First Grok the interface to register them:
+
+  >>> grok('silva.fanstatic.tests.dependencies.external_fixture')
+
+Open the page to verify the rendering:
+
+  >>> browser = get_browser()
+  >>> browser.options.handle_errors = False
+  >>> browser.open('/root/full.html')
+  200
+
+And check the rendering link the CSS and Javascript files:
+
+  >>> print browser.html.xpath('//script/@src')
+  ['http://silvacms.org/framework.js',
+   'http://silvacms.org/tracker.js']
+  >>> print browser.html.xpath('//link/@href')
+  ['http://infr.ae/tracker.css']

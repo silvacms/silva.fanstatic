@@ -3,8 +3,10 @@
 # See also LICENSE.txt
 
 from silva.fanstatic.extending import need
+from silva.fanstatic.resources import ExternalResource, Snippet
+from fanstatic.core import Group
 
-__all__ = ['need']
+__all__ = ['need', 'ExternalResource', 'Snippet', 'Group']
 
 
 # Patch fanstatic with missing API calls during testing
