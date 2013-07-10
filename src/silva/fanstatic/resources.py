@@ -46,6 +46,11 @@ class ExternalResource(Renderable):
                     self.ext, url))
         self.order, self.renderer = inclusion_renderers[self.ext]
 
+    def __eq__(self, other):
+        if isinstance(other, ExternalResource):
+            return other.url == self.url
+        return False
+
     def __hash__(self):
         # Include resource url inside the hash
         return hash(('ExternalResource', self.url))
@@ -99,6 +104,11 @@ class Snippet(Renderable):
     def __hash__(self):
         # Include resource url inside the hash
         return hash(('Snippet', self.snippet))
+
+    def __eq__(self, other):
+        if isinstance(other, Snippet):
+            return other.snippet == self.snippet
+        return False
 
     def mode(self, mode):
         return self
