@@ -22,7 +22,7 @@ import pkg_resources
 
 from silva.core.conf.martiansupport import directives as silvaconf
 from silva.fanstatic.interfaces import ISubscribedResource
-from silva.fanstatic.integration import ZopeFanstaticResource
+from silva.fanstatic.support import ZopeFanstaticResource
 from silva.fanstatic.extending import INTERFACES_RESOURCES
 
 _marker = object()

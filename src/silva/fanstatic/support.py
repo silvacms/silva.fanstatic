@@ -2,6 +2,8 @@
 # Copyright (c) 2011-2013 Infrae. All rights reserved.
 # See also LICENSE.txt
 
+from __future__ import absolute_import
+
 from five import grok
 from zope.interface import Interface, implements
 from zope.traversing.browser.interfaces import IAbsoluteURL
