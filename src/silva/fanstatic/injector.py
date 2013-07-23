@@ -72,7 +72,7 @@ class InjectBeforeAction(Action):
             tag = self.tag
         return html.replace(
             compat.as_bytestring(tag),
-            compat.as_bytestring(resources + tag))
+            compat.as_bytestring(resources + '\n'+ tag))
 
 
 class InjectAfterAction(Action):
@@ -89,7 +89,7 @@ class InjectAfterAction(Action):
             tag = self.tag
         return html.replace(
             compat.as_bytestring(tag),
-            compat.as_bytestring(tag + resources))
+            compat.as_bytestring(tag + '\n'+ resources))
 
 ACTIONS = [ReplaceAction, InjectBeforeAction, InjectAfterAction]
 
