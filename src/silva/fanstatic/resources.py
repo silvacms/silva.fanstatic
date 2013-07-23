@@ -55,6 +55,11 @@ class ExternalResource(Renderable):
         # Include resource url inside the hash
         return hash(('ExternalResource', self.url))
 
+    def __eq__(self, other):
+        if isinstance(other, ExternalResource):
+            return other.url == self.url
+        return False
+
     def mode(self, mode):
         return self
 

@@ -2,7 +2,6 @@
 import unittest
 from silva.fanstatic import Snippet, ExternalResource
 
-
 CSS = "body {color: red}"
 JS_URL = "http://silvacms.org/tracker.js"
 
