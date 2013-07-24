@@ -1,6 +1,5 @@
 
 from fanstatic import compat
-from fanstatic.inclusion import Inclusion
 from fanstatic.injector import InjectorPlugin
 import re
 
@@ -316,7 +315,7 @@ def parse_rules(config):
                     'Rule defined after default rule', lineno)
             if current is None:
                 raise ParseError(
-                    'Could not understand line "%s"' % line,
+                    'Could not understand line "%s" (missing test ?)' % line,
                     lineno)
             current.set_action(lineno, line)
             result = current.emit(lineno)
