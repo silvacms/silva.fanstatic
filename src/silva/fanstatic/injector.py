@@ -1,9 +1,13 @@
 
-from fanstatic import compat, Inclusion
+from fanstatic import compat
+from fanstatic.inclusion import Inclusion
+from fanstatic.injector import InjectorPlugin
 import re
+
 
 class Test(object):
     pass
+
 
 
 class URLTest(Test):
@@ -124,6 +128,7 @@ class CSSSelector(ResourceSelector):
 
     def test(self, resource):
         return resource.ext == '.css'
+
 
 class ICOSelector(ResourceSelector):
     selector = 'ico'
@@ -326,10 +331,11 @@ def parse_rules(config):
     return default, rules
 
 
-class RuleBasedInjector(object):
+class RuleBasedInjector(InjectorPlugin):
     name = 'rules'
 
     def __init__(self, options):
+        super(RuleBasedInjector, self).__init__(options)
         self.default, self.rules = parse_rules(options.pop('rules'))
 
     def __call__(self, html, needed, request, response=None):
@@ -347,5 +353,6 @@ class RuleBasedInjector(object):
                 if self.default is not None:
                     includes.setdefault(self.default.inject, []).append(resource)
         for injector, resources in includes.items():
-            html = injector(html, Inclusion(needed, resources).render())
+            inclusion = self.make_inclusion(needed, resources)
+            html = injector(html, inclusion.render())
         return html
