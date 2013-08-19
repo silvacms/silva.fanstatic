@@ -2,11 +2,14 @@
 # Copyright (c) 2011-2013 Infrae. All rights reserved.
 # See also LICENSE.txt
 
-from silva.fanstatic.extending import need
+from silva.fanstatic.extending import need, get_inclusion
 from silva.fanstatic.resources import ExternalResource, Snippet
-from fanstatic.core import Group
+from fanstatic import Group
+from fanstatic import get_needed
 
-__all__ = ['need', 'ExternalResource', 'Snippet', 'Group']
+__all__ = [
+    'need', 'get_inclusion', 'get_needed',
+    'ExternalResource', 'Snippet', 'Group']
 
 
 # Patch fanstatic with missing API calls during testing

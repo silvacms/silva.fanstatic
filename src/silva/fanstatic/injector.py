@@ -1,6 +1,7 @@
 
 from fanstatic import compat
 from fanstatic.injector import InjectorPlugin
+from silva.fanstatic.extending import _set_settings
 import re
 
 
@@ -334,8 +335,13 @@ class RuleBasedInjector(InjectorPlugin):
     name = 'rules'
 
     def __init__(self, options):
+        _set_settings(options)
         super(RuleBasedInjector, self).__init__(options)
-        self.default, self.rules = parse_rules(options.pop('rules'))
+        self.default, self.rules = parse_rules(
+            options.pop('rules',
+            """otherwise
+insert before </head>
+"""))
 
     def __call__(self, html, needed, request, response=None):
         rules = []
