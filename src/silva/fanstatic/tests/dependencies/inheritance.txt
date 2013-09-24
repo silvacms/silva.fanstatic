@@ -12,8 +12,6 @@ Open the page to verify the rendering:
 And check the rendering link the CSS files. XXX The order should be the
 same the one indicated, but due to a bug it is not:
 
-  >>> sorted(browser.html.xpath('//link/@href'))
-  ['http://localhost/root/++static++/silva.fanstatic.tests.dependencies/base.css',
-   'http://localhost/root/++static++/silva.fanstatic.tests.dependencies/featurea.css',
-   'http://localhost/root/++static++/silva.fanstatic.tests.dependencies/featureb.css',
-   'http://localhost/root/++static++/silva.fanstatic.tests.dependencies/full.css']
+  >>> urls = browser.html.xpath('//link/@href')
+  >>> len(urls)
+  1
