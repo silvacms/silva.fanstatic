@@ -1,10 +1,17 @@
 Changes
 =======
 
-1.2 (unreleased)
+1.2 (2013/10/08)
 ----------------
 
-* ...
+* Add a Fanstatic injector called ``rules`` that let you described
+  precisely where resources should be injected. This requires
+  fanstatic 1.0.
+
+* Add support for special resources ``ExternalResource`` and
+  ``Snippet``. They let you include resources that are external
+  resources and inline snippet instead of resources served by
+  fanstatic.
 
 1.1.1 (2013/05/23)
 ------------------
