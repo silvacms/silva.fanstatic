@@ -8,15 +8,19 @@ from five import grok
 from zope.interface import Interface, implements
 from zope.traversing.browser.interfaces import IAbsoluteURL
 from zope.traversing.interfaces import ITraversable
+from zope.publisher.interfaces.browser import IBrowserView
 import fanstatic
 
 from silva.fanstatic.interfaces import ISubscribedResource
 from silva.fanstatic.interfaces import IZopeResource
 from silva.core.views.interfaces import IVirtualSite
 
+from infrae.wsgi.interfaces import IPublicationAfterRender
+
 from ZPublisher.interfaces import IPubFailure, IPubSuccess
 
 _marker = object()
+
 
 class ZopeFanstaticResource(object):
     # Hack to get ++resource++foo/bar/baz.jpg *paths* working in Zope
@@ -66,9 +70,14 @@ class Resources(grok.ViewletManager):
         pass
 
     def render(self):
-        grok.queryMultiSubscriptions(
-            (self.request, self.context), ISubscribedResource)
         return u''
+
+
+@grok.subscribe(IPublicationAfterRender)
+def inject_resources(event):
+    if IBrowserView.providedBy(event.content):
+        grok.queryMultiSubscriptions(
+            (event.request, event.content), ISubscribedResource)
 
 
 @grok.subscribe(IPubSuccess)
