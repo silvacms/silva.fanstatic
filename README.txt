@@ -41,8 +41,8 @@ inline snippets too.
 Code repository
 ===============
 
-You can find the code of this extension in Mercurial:
-https://hg.infrae.com/silva.fanstatic/.
+You can find the code of this extension in Git:
+https://github.com/silvacms/silva.fanstatic.
 
 
 .. _fanstatic: http://www.fanstatic.org
